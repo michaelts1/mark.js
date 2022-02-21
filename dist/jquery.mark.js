@@ -16,17 +16,11 @@
   function _typeof(obj) {
     "@babel/helpers - typeof";
 
-    if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") {
-      _typeof = function (obj) {
-        return typeof obj;
-      };
-    } else {
-      _typeof = function (obj) {
-        return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
-      };
-    }
-
-    return _typeof(obj);
+    return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) {
+      return typeof obj;
+    } : function (obj) {
+      return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
+    }, _typeof(obj);
   }
 
   function _classCallCheck(instance, Constructor) {
@@ -48,6 +42,9 @@
   function _createClass(Constructor, protoProps, staticProps) {
     if (protoProps) _defineProperties(Constructor.prototype, protoProps);
     if (staticProps) _defineProperties(Constructor, staticProps);
+    Object.defineProperty(Constructor, "prototype", {
+      writable: false
+    });
     return Constructor;
   }
 
@@ -1394,7 +1391,7 @@
           dict.nodes.every(function (node) {
             node = node.node;
 
-            while ((match = regex.exec(node.textContent)) !== null && match[matchIdx] !== '') {
+            while ((match = regex.exec(_this5.normalizeHebrew(node.textContent))) !== null && match[matchIdx] !== '') {
               filterInfo.match = match;
               matchStart = true;
 
@@ -1471,7 +1468,7 @@
             matchStart,
             count = 0;
         this.getTextNodesAcrossElements(function (dict) {
-          while ((match = regex.exec(dict.value)) !== null && match[matchIdx] !== '') {
+          while ((match = regex.exec(_this6.normalizeHebrew(dict.value))) !== null && match[matchIdx] !== '') {
             filterInfo.match = match;
             matchStart = true;
 
@@ -1589,6 +1586,11 @@
         }
 
         this.normalizeTextNode(node.nextSibling);
+      }
+    }, {
+      key: "normalizeHebrew",
+      value: function normalizeHebrew(str) {
+        return str.normalize().replace(/(\u05b9|\u05ba)ו(?![\u05b0-\u05bc\u05c7])/g, "\u05D5\u05B9").replace(/\u05ba/g, "\u05B9");
       }
     }, {
       key: "markRegExp",

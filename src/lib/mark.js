@@ -1042,7 +1042,7 @@ class Mark {
       dict.nodes.every(node => {
         node = node.node;
         while (
-          (match = regex.exec(node.textContent.normalize())) !== null &&
+          (match = regex.exec(this.normalizeHebrew(node.textContent))) !== null &&
           match[matchIdx] !== ''
         ) {
           filterInfo.match = match;
@@ -1180,7 +1180,7 @@ class Mark {
 
     this.getTextNodesAcrossElements(dict => {
       while (
-        (match = regex.exec(dict.value.normalize())) !== null &&
+        (match = regex.exec(this.normalizeHebrew(dict.value))) !== null &&
         match[matchIdx] !== ''
       ) {
         filterInfo.match = match;
@@ -1337,6 +1337,21 @@ class Mark {
       this.normalizeTextNode(node.firstChild);
     }
     this.normalizeTextNode(node.nextSibling);
+  }
+
+  /**
+   * Normalizes Hebrew strings more aggressively than `String.normalize()` does
+   * @param {string} str - String for normalizing
+   */
+  normalizeHebrew(str) {
+    /* Convert:
+      Holam / Holam Haser for Vav before Vav => Holam after Vav
+      Holam Haser for Vav => Holam
+    */
+    return str
+      .normalize()
+      .replace(/(\u05b9|\u05ba)ו(?![\u05b0-\u05bc\u05c7])/g, 'ו\u05b9')
+      .replace(/\u05ba/g, '\u05b9');
   }
 
   /**
