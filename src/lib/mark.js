@@ -1221,7 +1221,7 @@ class Mark {
         filterInfo.offset = nd.start;
 
         while (
-          (match = regex.exec(node.textContent)) !== null &&
+          (match = regex.exec(node.textContent.normalize())) !== null &&
           (regex.hasIndices || match[0] !== '')
         ) {
           filterInfo.match = match;
@@ -1521,7 +1521,7 @@ class Mark {
 
     this.getTextNodesAcrossElements(dict => {
       while (
-        (match = regex.exec(dict.value)) !== null &&
+        (match = regex.exec(dict.value.normalize())) !== null &&
         match[index] !== ''
       ) {
         filterInfo.match = match;
