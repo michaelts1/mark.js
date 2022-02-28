@@ -1,15 +1,17 @@
 /*!***************************************************
-* mark.js v9.0.0
+* mark.js v10.0.0
 * https://markjs.io/
 * Copyright (c) 2014–2022, Julian Kühnel
 * Released under the MIT license https://git.io/vwTVl
 *****************************************************/
 
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
-  typeof define === 'function' && define.amd ? define(factory) :
-  (global.Mark = factory());
-}(this, (function () { 'use strict';
+  typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('jquery')) :
+  typeof define === 'function' && define.amd ? define(['jquery'], factory) :
+  (global.Mark = factory(global.jQuery));
+}(this, (function ($) { 'use strict';
+
+  $ = $ && $.hasOwnProperty('default') ? $['default'] : $;
 
   class DOMIterator {
     constructor(ctx, iframes = true, exclude = [], iframesTimeout = 5000) {
@@ -586,8 +588,8 @@
         if (
           this.isNumeric(range.start) &&
           this.isNumeric(range.length) &&
-          end - last > 0 &&
-          end - start > 0
+          start >= last &&
+          end > start
         ) {
           valid = true;
         } else {
@@ -623,7 +625,7 @@
         valid = false;
         this.log(`Invalid range: ${JSON.stringify(range)}`);
         this.opt.noMatch(range);
-      } else if (string.substring(start, end).replace(/\s+/g, '') === '') {
+      } else if ( !/\S/.test(string.substring(start, end))) {
         valid = false;
         this.log('Skipping whitespace only range: ' + JSON.stringify(range));
         this.opt.noMatch(range);
@@ -955,7 +957,7 @@
           start = text.indexOf(group, startIndex);
           end = start + group.length;
           if (start !== -1) {
-            this.wrapRangeInMappedTextNode(dict, s + start, s + end, (node) => {
+            this.wrapRangeInMappedTextNode(dict, s + start, s + end, node => {
               return filterCb(group, node, index);
             }, (node, groupStart) => {
               eachCb(node, matchStart, groupStart, index);
@@ -974,7 +976,7 @@
       while (++i < str.length) {
         switch (str[i]) {
           case '(':
-            if (!charsRange) {
+            if ( !charsRange) {
               if (reg.test(str.substring(i))) {
                 stack.push(1);
                 if (brackets === 0) {
@@ -1015,7 +1017,7 @@
         dict.nodes.every(node => {
           node = node.node;
           while (
-            (match = regex.exec(this.normalizeHebrew(node.textContent))) !== null &&
+            (match = regex.exec(node.textContent)) !== null &&
             match[matchIdx] !== ''
           ) {
             filterInfo.match = match;
@@ -1078,7 +1080,7 @@
       let match, matchStart, count = 0;
       this.getTextNodesAcrossElements(dict => {
         while (
-          (match = regex.exec(this.normalizeHebrew(dict.value))) !== null &&
+          (match = regex.exec(dict.value)) !== null &&
           match[matchIdx] !== ''
         ) {
           filterInfo.match = match;
@@ -1132,6 +1134,7 @@
       });
     }
     wrapRangeFromIndex(ranges, filterCb, eachCb, endCb) {
+      let count = 0;
       this.getTextNodes(dict => {
         const originalLength = dict.value.length;
         ranges.forEach((range, counter) => {
@@ -1148,12 +1151,15 @@
                 dict.value.substring(start, end),
                 counter
               );
-            }, node => {
+            }, (node, rangeStart) => {
+              if (rangeStart) {
+                count++;
+              }
               eachCb(node, range);
             });
           }
         });
-        endCb();
+        endCb(count);
       });
     }
     unwrapMatches(node) {
@@ -1183,15 +1189,9 @@
       }
       this.normalizeTextNode(node.nextSibling);
     }
-    normalizeHebrew(str) {
-      return str
-        .normalize()
-        .replace(/(\u05b9|\u05ba)ו(?![\u05b0-\u05bc\u05c7])/g, 'ו\u05b9')
-        .replace(/\u05ba/g, '\u05b9');
-    }
     markRegExp(regexp, opt) {
       this.opt = opt;
-      let totalMatches = 0,
+      let totalMarks = 0,
         fn = 'wrapMatches';
       if (this.opt.acrossElements) {
         fn = 'wrapMatchesAcrossElements';
@@ -1205,22 +1205,22 @@
       }
       this.log(`Searching with expression "${regexp}"`);
       this[fn](regexp, this.opt.ignoreGroups, (match, node, filterInfo) => {
-        return this.opt.filter(node, match, totalMatches, filterInfo);
+        return this.opt.filter(node, match, totalMarks, filterInfo);
       }, (element, matchInfo) => {
-        totalMatches++;
+        totalMarks++;
         this.opt.each(element, matchInfo);
-      }, (totalCount) => {
-        if (totalCount === 0) {
+      }, (totalMatches) => {
+        if (totalMatches === 0) {
           this.opt.noMatch(regexp);
         }
-        this.opt.done(totalMatches, totalCount);
+        this.opt.done(totalMarks, totalMatches);
       });
     }
     mark(sv, opt) {
       this.opt = opt;
       let index = 0,
-        totalMatches = 0,
-        totalCount = 0;
+        totalMarks = 0,
+        totalMatches = 0;
       const fn =
         this.opt.acrossElements ? 'wrapMatchesAcrossElements' : 'wrapMatches',
         termStats = {};
@@ -1231,13 +1231,13 @@
           let matches = 0;
           this.log(`Searching with expression "${regex}"`);
           this[fn](regex, 1, (term, node, filterInfo) => {
-            return this.opt.filter(node, kw, totalMatches, matches, filterInfo);
+            return this.opt.filter(node, kw, totalMarks, matches, filterInfo);
           }, (element, matchInfo) => {
             matches++;
-            totalMatches++;
+            totalMarks++;
             this.opt.each(element, matchInfo);
           }, (count) => {
-            totalCount += count;
+            totalMatches += count;
             if (count === 0) {
               this.opt.noMatch(kw);
             }
@@ -1245,19 +1245,19 @@
             if (++index < length) {
               handler(keywords[index]);
             } else {
-              this.opt.done(totalMatches, totalCount, termStats);
+              this.opt.done(totalMarks, totalMatches, termStats);
             }
           });
         };
       if (length === 0) {
-        this.opt.done(totalMatches, 0, termStats);
+        this.opt.done(0, 0, termStats);
       } else {
         handler(keywords[index]);
       }
     }
     markRanges(rawRanges, opt) {
       this.opt = opt;
-      let totalMatches = 0,
+      let totalMarks = 0,
         ranges = this.checkRanges(rawRanges);
       if (ranges && ranges.length) {
         this.log(
@@ -1268,14 +1268,14 @@
           ranges, (node, range, match, counter) => {
             return this.opt.filter(node, range, match, counter);
           }, (element, range) => {
-            totalMatches++;
+            totalMarks++;
             this.opt.each(element, range);
-          }, () => {
-            this.opt.done(totalMatches);
+          }, (totalMatches) => {
+            this.opt.done(totalMarks, totalMatches);
           }
         );
       } else {
-        this.opt.done(totalMatches);
+        this.opt.done(0, 0);
       }
     }
     unmark(opt) {
@@ -1300,27 +1300,23 @@
     }
   }
 
-  function Mark$1(ctx) {
-    const instance = new Mark(ctx);
-    this.mark = (sv, opt) => {
-      instance.mark(sv, opt);
-      return this;
-    };
-    this.markRegExp = (sv, opt) => {
-      instance.markRegExp(sv, opt);
-      return this;
-    };
-    this.markRanges = (sv, opt) => {
-      instance.markRanges(sv, opt);
-      return this;
-    };
-    this.unmark = (opt) => {
-      instance.unmark(opt);
-      return this;
-    };
+  $.fn.mark = function(sv, opt) {
+    new Mark(this.get()).mark(sv, opt);
     return this;
-  }
+  };
+  $.fn.markRegExp = function(regexp, opt) {
+    new Mark(this.get()).markRegExp(regexp, opt);
+    return this;
+  };
+  $.fn.markRanges = function(ranges, opt) {
+    new Mark(this.get()).markRanges(ranges, opt);
+    return this;
+  };
+  $.fn.unmark = function(opt) {
+    new Mark(this.get()).unmark(opt);
+    return this;
+  };
 
-  return Mark$1;
+  return $;
 
 })));

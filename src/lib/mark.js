@@ -232,8 +232,8 @@ class Mark {
       if (
         this.isNumeric(range.start) &&
         this.isNumeric(range.length) &&
-        end - last > 0 &&
-        end - start > 0
+        start >= last &&
+        end > start
       ) {
         valid = true;
       } else {
@@ -284,7 +284,7 @@ class Mark {
       valid = false;
       this.log(`Invalid range: ${JSON.stringify(range)}`);
       this.opt.noMatch(range);
-    } else if (string.substring(start, end).replace(/\s+/g, '') === '') {
+    } else if ( !/\S/.test(string.substring(start, end))) {
       valid = false;
       // whitespace only; even if wrapped it is not visible
       this.log('Skipping whitespace only range: ' + JSON.stringify(range));
@@ -936,7 +936,7 @@ class Mark {
         end = start + group.length;
 
         if (start !== -1) {
-          this.wrapRangeInMappedTextNode(dict, s + start, s + end, (node) => {
+          this.wrapRangeInMappedTextNode(dict, s + start, s + end, node => {
             return filterCb(group, node, index);
           }, (node, groupStart) => {
             eachCb(node, matchStart, groupStart, index);
@@ -965,7 +965,7 @@ class Mark {
     while (++i < str.length) {
       switch (str[i]) {
         case '(':
-          if (!charsRange) {
+          if ( !charsRange) {
             if (reg.test(str.substring(i))) {
               stack.push(1);
               if (brackets === 0) {
@@ -1254,12 +1254,13 @@ class Mark {
    * @param {HTMLElement} node - The text node which includes the range
    * @param {Mark~rangeObject} range - the current range object
    * @param {string} match - string extracted from the matching range
-   * @param {number} counter - A counter indicating the number of all marks
+   * @param {number} counter - The current range index
    */
 
   /**
    * Callback on end
    * @callback Mark~wrapRangeFromIndexEndCallback
+   * @param {number} count - The number of wrapped ranges
    */
   /**
    * Wraps the indicated ranges across all HTML elements in all contexts
@@ -1270,6 +1271,8 @@ class Mark {
    * @access protected
    */
   wrapRangeFromIndex(ranges, filterCb, eachCb, endCb) {
+    let count = 0;
+
     this.getTextNodes(dict => {
       const originalLength = dict.value.length;
       ranges.forEach((range, counter) => {
@@ -1286,12 +1289,15 @@ class Mark {
               dict.value.substring(start, end),
               counter
             );
-          }, node => {
+          }, (node, rangeStart) => {
+            if (rangeStart) {
+              count++;
+            }
             eachCb(node, range);
           });
         }
       });
-      endCb();
+      endCb(count);
     });
   }
 
@@ -1369,9 +1375,8 @@ class Mark {
   /**
    * Callback when finished
    * @callback Mark~commonDoneCallback
-   * @param {number} totalMatches - The number of marked elements
-   * @param {number} totalCount - The number of total matches when
-   * the 'acrossElements' option is enabled
+   * @param {number} totalMarks - The total number of marked elements
+   * @param {number} totalMatches - The exact number of total matches
    * @param {object} termStats - An object containing an individual term's
    * matches count for {@link Mark#mark} method.
    */
@@ -1443,7 +1448,7 @@ class Mark {
   markRegExp(regexp, opt) {
     this.opt = opt;
 
-    let totalMatches = 0,
+    let totalMarks = 0,
       fn = 'wrapMatches';
 
     if (this.opt.acrossElements) {
@@ -1462,17 +1467,17 @@ class Mark {
     this.log(`Searching with expression "${regexp}"`);
 
     this[fn](regexp, this.opt.ignoreGroups, (match, node, filterInfo) => {
-      return this.opt.filter(node, match, totalMatches, filterInfo);
+      return this.opt.filter(node, match, totalMarks, filterInfo);
 
     }, (element, matchInfo) => {
-      totalMatches++;
+      totalMarks++;
       this.opt.each(element, matchInfo);
 
-    }, (totalCount) => {
-      if (totalCount === 0) {
+    }, (totalMatches) => {
+      if (totalMatches === 0) {
         this.opt.noMatch(regexp);
       }
-      this.opt.done(totalMatches, totalCount);
+      this.opt.done(totalMarks, totalMatches);
     });
   }
 
@@ -1510,8 +1515,8 @@ class Mark {
     this.opt = opt;
 
     let index = 0,
-      totalMatches = 0,
-      totalCount = 0;
+      totalMarks = 0,
+      totalMatches = 0;
     const fn =
       this.opt.acrossElements ? 'wrapMatchesAcrossElements' : 'wrapMatches',
       termStats = {};
@@ -1524,15 +1529,15 @@ class Mark {
         this.log(`Searching with expression "${regex}"`);
 
         this[fn](regex, 1, (term, node, filterInfo) => {
-          return this.opt.filter(node, kw, totalMatches, matches, filterInfo);
+          return this.opt.filter(node, kw, totalMarks, matches, filterInfo);
 
         }, (element, matchInfo) => {
           matches++;
-          totalMatches++;
+          totalMarks++;
           this.opt.each(element, matchInfo);
 
         }, (count) => {
-          totalCount += count;
+          totalMatches += count;
 
           if (count === 0) {
             this.opt.noMatch(kw);
@@ -1542,13 +1547,13 @@ class Mark {
           if (++index < length) {
             handler(keywords[index]);
           } else {
-            this.opt.done(totalMatches, totalCount, termStats);
+            this.opt.done(totalMarks, totalMatches, termStats);
           }
         });
       };
 
     if (length === 0) {
-      this.opt.done(totalMatches, 0, termStats);
+      this.opt.done(0, 0, termStats);
     } else {
       handler(keywords[index]);
     }
@@ -1572,7 +1577,7 @@ class Mark {
    * @param {HTMLElement} node - The text node which includes the range
    * @param {array} range - array of range start and end points
    * @param {string} match - string extracted from the matching range
-   * @param {number} counter - A counter indicating the number of all marks
+   * @param {number} counter - The current range index
    */
 
   /**
@@ -1594,7 +1599,7 @@ class Mark {
    */
   markRanges(rawRanges, opt) {
     this.opt = opt;
-    let totalMatches = 0,
+    let totalMarks = 0,
       ranges = this.checkRanges(rawRanges);
     if (ranges && ranges.length) {
       this.log(
@@ -1605,14 +1610,14 @@ class Mark {
         ranges, (node, range, match, counter) => {
           return this.opt.filter(node, range, match, counter);
         }, (element, range) => {
-          totalMatches++;
+          totalMarks++;
           this.opt.each(element, range);
-        }, () => {
-          this.opt.done(totalMatches);
+        }, (totalMatches) => {
+          this.opt.done(totalMarks, totalMatches);
         }
       );
     } else {
-      this.opt.done(totalMatches);
+      this.opt.done(0, 0);
     }
   }
 
