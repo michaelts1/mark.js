@@ -1042,8 +1042,8 @@ class Mark {
       dict.nodes.every(node => {
         node = node.node;
         while (
-          (match = regex.exec(this.normalizeHebrew(node.textContent))) !== null &&
-          match[matchIdx] !== ''
+          (match = regex.exec(this.normalizeHebrew(node.textContent))) !== null
+          && match[matchIdx] !== ''
         ) {
           filterInfo.match = match;
           matchStart = true;

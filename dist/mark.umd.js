@@ -1015,8 +1015,8 @@
         dict.nodes.every(node => {
           node = node.node;
           while (
-            (match = regex.exec(node.textContent)) !== null &&
-            match[matchIdx] !== ''
+            (match = regex.exec(this.normalizeHebrew(node.textContent))) !== null
+            && match[matchIdx] !== ''
           ) {
             filterInfo.match = match;
             matchStart = true;
@@ -1078,7 +1078,7 @@
       let match, matchStart, count = 0;
       this.getTextNodesAcrossElements(dict => {
         while (
-          (match = regex.exec(dict.value)) !== null &&
+          (match = regex.exec(this.normalizeHebrew(dict.value))) !== null &&
           match[matchIdx] !== ''
         ) {
           filterInfo.match = match;
@@ -1186,6 +1186,12 @@
         this.normalizeTextNode(node.firstChild);
       }
       this.normalizeTextNode(node.nextSibling);
+    }
+    normalizeHebrew(str) {
+      return str
+        .normalize()
+        .replace(/(\u05b9|\u05ba)ו(?![\u05b0-\u05bc\u05c7])/g, 'ו\u05b9')
+        .replace(/\u05ba/g, '\u05b9');
     }
     markRegExp(regexp, opt) {
       this.opt = opt;
