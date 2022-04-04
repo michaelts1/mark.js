@@ -1,6 +1,6 @@
 /*!***************************************************
 * mark.js v10.0.0
-* https://markjs.io/
+* https://github.com/michaelts1/mark.js/tree/ooxml
 * Copyright (c) 2014–2022, Julian Kühnel
 * Released under the MIT license https://git.io/vwTVl
 *****************************************************/
@@ -801,17 +801,22 @@ class Mark {
       'script', 'style', 'title', 'head', 'html'
     ]));
   }
-  wrapRangeInTextNode(node, start, end) {
-    const hEl = !this.opt.element ? 'mark' : this.opt.element,
-      startNode = node.splitText(start),
+  wrapRangeInTextNode(textNode, start, end) {
+    const repl = this.opt.element.cloneNode(true),
+      startNode = textNode.splitText(start),
       ret = startNode.splitText(end - start);
-    let repl = document.createElement(hEl);
     repl.setAttribute('data-markjs', 'true');
-    if (this.opt.className) {
-      repl.setAttribute('class', this.opt.className);
+    const parentEl = textNode.parentElement.parentElement;
+    const rPr = parentEl.querySelector('*|rPr');
+    if (rPr) {
+      rPr.appendChild(repl);
+    } else {
+      const newRPr = this.ctx.createElementNS(
+        'http://schemas.openxmlformats.org/wordprocessingml/2006/main',
+        'w:rPr');
+      parentEl.prepend(newRPr);
+      newRPr.appendChild(repl);
     }
-    repl.textContent = startNode.textContent;
-    startNode.parentNode.replaceChild(repl, startNode);
     return ret;
   }
   wrapRangeInMappedTextNode(dict, start, end, filterCb, eachCb) {
@@ -1189,6 +1194,12 @@ class Mark {
   }
   markRegExp(regexp, opt) {
     this.opt = opt;
+    if (!this.opt.element) {
+      this.log('No wrapping element specified.' +
+        ' Please specify options.element parameter');
+      this.opt.noMatch(regexp);
+      return;
+    }
     let totalMarks = 0,
       fn = 'wrapMatches';
     if (this.opt.acrossElements) {
@@ -1216,6 +1227,12 @@ class Mark {
   }
   mark(sv, opt) {
     this.opt = opt;
+    if (!this.opt.element) {
+      this.log('No wrapping element specified.' +
+        ' Please specify options.element parameter');
+      this.opt.noMatch(sv);
+      return;
+    }
     let index = 0,
       totalMarks = 0,
       totalMatches = 0;
@@ -1255,6 +1272,12 @@ class Mark {
   }
   markRanges(rawRanges, opt) {
     this.opt = opt;
+    if (!this.opt.element) {
+      this.log('No wrapping element specified.' +
+        ' Please specify options.element parameter');
+      this.opt.noMatch(rawRanges);
+      return;
+    }
     let totalMarks = 0,
       ranges = this.checkRanges(rawRanges);
     if (ranges && ranges.length) {
@@ -1278,8 +1301,7 @@ class Mark {
   }
   unmark(opt) {
     this.opt = opt;
-    let sel = this.opt.element ? this.opt.element : '*';
-    sel += '[data-markjs]';
+    let sel = '[data-markjs]';
     if (this.opt.className) {
       sel += `.${this.opt.className}`;
     }

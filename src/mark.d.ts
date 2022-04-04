@@ -31,7 +31,7 @@ declare class Mark {
      * @param options Optional options
      * @returns Itself
      */
-    mark(term: markTerm, options?: Mark.MarkOptions): this
+    mark(term: markTerm, options: Mark.MarkOptions): this
 
     /**
      * Highlight custom regular expressions.
@@ -39,7 +39,7 @@ declare class Mark {
      * @param options Optional options
      * @returns Itself
      */
-    markRegExp(term: markRegExpTerm, options?: Mark.MarkRegExpOptions): this
+    markRegExp(term: markRegExpTerm, options: Mark.MarkRegExpOptions): this
 
     /**
      * A method to mark ranges with a start position and length. They will be applied
@@ -49,14 +49,14 @@ declare class Mark {
      * @param options Optional options
      * @returns Itself
      */
-    markRanges(ranges: markRangesTerm, options?: Mark.MarkOptionsGeneric): this
+    markRanges(ranges: markRangesTerm, options: Mark.MarkOptionsGeneric): this
 
     /**
      * A method to remove highlights created by mark.js.
      * @param options Optional options
      * @returns Itself
      */
-    unmark(options?: Mark.Options): this
+    unmark(options: Mark.UnmarkOptions): this
 }
 
 declare namespace Mark {
@@ -67,8 +67,7 @@ declare namespace Mark {
     }
 
     interface Options {
-        element?: string
-        className?: string
+        element: Element
         exclude?: string[]
         iframes?: boolean
         iframesTimeout?: number
@@ -98,6 +97,10 @@ declare namespace Mark {
     interface MarkRegExpOptions extends MarkOptionsGeneric {
         acrossElements?: boolean
         ignoreGroups?: number
+    }
+
+    interface UnmarkOptions extends Options {
+        className?: string
     }
 }
 
