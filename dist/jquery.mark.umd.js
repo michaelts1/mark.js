@@ -813,11 +813,14 @@
       const repl = this.opt.element.cloneNode(true),
         startNode = textNode.splitText(start),
         ret = startNode.splitText(end - start);
+  	const el2 = XMLDoc.createElement('span');
+  	el2.classList.add('yellow');
+      el.setAttribute('data-markjs', 'true');
       repl.setAttribute('data-markjs', 'true');
       const parentEl = textNode.parentElement.parentElement;
       const rPr = parentEl.querySelector('*|rPr');
       if (rPr) {
-        rPr.appendChild(repl);
+        rPr.append(repl, el2);
       } else {
         const newRPr = this.ctx.createElementNS(
           'http://schemas.openxmlformats.org/wordprocessingml/2006/main',
