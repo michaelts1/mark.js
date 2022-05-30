@@ -1017,7 +1017,7 @@
         dict.nodes.every(node => {
           node = node.node;
           while (
-            (match = regex.exec(node.textContent)) !== null &&
+            (match = regex.exec(node.textContent.normalize())) !== null &&
             match[matchIdx] !== ''
           ) {
             filterInfo.match = match;
@@ -1080,7 +1080,7 @@
       let match, matchStart, count = 0;
       this.getTextNodesAcrossElements(dict => {
         while (
-          (match = regex.exec(dict.value)) !== null &&
+          (match = regex.exec(dict.value.normalize())) !== null &&
           match[matchIdx] !== ''
         ) {
           filterInfo.match = match;
