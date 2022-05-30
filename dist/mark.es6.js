@@ -805,14 +805,13 @@ class Mark {
     const repl = this.opt.element.cloneNode(true),
       startNode = textNode.splitText(start),
       ret = startNode.splitText(end - start);
-
     repl.setAttribute('data-markjs', 'true');
     const parentEl = textNode.parentElement.parentElement;
     const rPr = parentEl.querySelector('*|rPr');
     if (rPr) {
-      rPr.append(repl, el2);
+      rPr.appendChild(repl);
     } else {
-      const newRPr = document.createElementNS(
+      const newRPr = this.ctx.createElementNS(
         'http://schemas.openxmlformats.org/wordprocessingml/2006/main',
         'w:rPr');
       parentEl.prepend(newRPr);
