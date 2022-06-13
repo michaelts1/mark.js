@@ -20,7 +20,7 @@ type markRangesTerm = Array<{
 	length: number
 }>
 
-declare class Mark {
+export class Mark {
 	constructor(context: Element | Element[] | string | NodeList)
 
 	/**
