@@ -1,6 +1,6 @@
 /*!***************************************************
 * mark.js v10.0.0
-* https://markjs.io/
+* https://github.com/michaelts1/mark.js/tree/master
 * Copyright (c) 2014–2022, Julian Kühnel
 * Released under the MIT license https://git.io/vwTVl
 *****************************************************/
