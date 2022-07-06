@@ -1,6 +1,6 @@
 /*!***************************************************
 * mark.js v10.0.0
-* https://github.com/michaelts1/mark.js/tree/master
+* https://github.com/michaelts1/mark.js/tree/ooxml
 * Copyright (c) 2014–2022, Julian Kühnel
 * Released under the MIT license https://git.io/vwTVl
 *****************************************************/
@@ -1553,7 +1553,7 @@
             node = nd.node;
             filterInfo.offset = nd.start;
 
-            while ((match = regex.exec(node.textContent.normalize())) !== null && match[matchIdx] !== '') {
+            while ((match = regex.exec(_this6.normalizeHebrew(node.textContent))) !== null && match[matchIdx] !== '') {
               filterInfo.match = match;
 
               if (!filterCb(match[matchIdx], node, filterInfo)) {
@@ -1656,7 +1656,7 @@
             matchStart,
             count = 0;
         this.getTextNodesAcrossElements(function (dict) {
-          while ((match = regex.exec(dict.value.normalize())) !== null && match[matchIdx] !== '') {
+          while ((match = regex.exec(_this8.normalizeHebrew(dict.value))) !== null && match[matchIdx] !== '') {
             filterInfo.match = match;
             matchStart = true;
             var start = match.index;
@@ -1760,11 +1760,23 @@
         this.normalizeTextNode(node.nextSibling);
       }
     }, {
+      key: "normalizeHebrew",
+      value: function normalizeHebrew(str) {
+        return str.normalize().replace(/(\u05b9|\u05ba)ו(?![\u05b0-\u05bc\u05c7])/g, "\u05D5\u05B9").replace(/\u05ba/g, "\u05B9");
+      }
+    }, {
       key: "markRegExp",
       value: function markRegExp(regexp, opt) {
         var _this10 = this;
 
         this.opt = opt;
+
+        if (!this.opt.element) {
+          this.log('No wrapping element specified.' + ' Please specify options.element parameter');
+          this.opt.noMatch(regexp);
+          return;
+        }
+
         var totalMarks = 0,
             fn = this.getMethodName(opt);
 
@@ -1797,6 +1809,13 @@
         var _this11 = this;
 
         this.opt = opt;
+
+        if (!this.opt.element) {
+          this.log('No wrapping element specified.' + ' Please specify options.element parameter');
+          this.opt.noMatch(sv);
+          return;
+        }
+
         var index = 0,
             totalMarks = 0,
             totalMatches = 0;
@@ -1867,6 +1886,13 @@
         var _this12 = this;
 
         this.opt = opt;
+
+        if (!this.opt.element) {
+          this.log('No wrapping element specified.' + ' Please specify options.element parameter');
+          this.opt.noMatch(rawRanges);
+          return;
+        }
+
         var totalMarks = 0,
             ranges = this.checkRanges(rawRanges);
 
@@ -1891,8 +1917,7 @@
         var _this13 = this;
 
         this.opt = opt;
-        var sel = this.opt.element ? this.opt.element : '*';
-        sel += '[data-markjs]';
+        var sel = '[data-markjs]';
 
         if (this.opt.className) {
           sel += ".".concat(this.opt.className);

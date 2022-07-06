@@ -1,6 +1,6 @@
 /*!***************************************************
 * mark.js v10.0.0
-* https://github.com/michaelts1/mark.js/tree/master
+* https://github.com/michaelts1/mark.js/tree/ooxml
 * Copyright (c) 2014–2022, Julian Kühnel
 * Released under the MIT license https://git.io/vwTVl
 *****************************************************/
@@ -1128,8 +1128,8 @@ class Mark {
         node = nd.node;
         filterInfo.offset = nd.start;
         while (
-          (match = regex.exec(node.textContent.normalize())) !== null &&
-          match[matchIdx] !== ''
+          (match = regex.exec(this.normalizeHebrew(node.textContent))) !== null
+          && match[matchIdx] !== ''
         ) {
           filterInfo.match = match;
           if (!filterCb(match[matchIdx], node, filterInfo)) {
@@ -1206,7 +1206,7 @@ class Mark {
     let match, matchStart, count = 0;
     this.getTextNodesAcrossElements(dict => {
       while (
-        (match = regex.exec(dict.value.normalize())) !== null &&
+        (match = regex.exec(this.normalizeHebrew(dict.value))) !== null &&
         match[matchIdx] !== ''
       ) {
         filterInfo.match = match;
@@ -1296,8 +1296,20 @@ class Mark {
     }
     this.normalizeTextNode(node.nextSibling);
   }
+  normalizeHebrew(str) {
+    return str
+      .normalize()
+      .replace(/(\u05b9|\u05ba)ו(?![\u05b0-\u05bc\u05c7])/g, 'ו\u05b9')
+      .replace(/\u05ba/g, '\u05b9');
+  }
   markRegExp(regexp, opt) {
     this.opt = opt;
+    if (!this.opt.element) {
+      this.log('No wrapping element specified.' +
+        ' Please specify options.element parameter');
+      this.opt.noMatch(regexp);
+      return;
+    }
     let totalMarks = 0,
       fn = this.getMethodName(opt);
     if (this.opt.acrossElements) {
@@ -1324,6 +1336,12 @@ class Mark {
   }
   mark(sv, opt) {
     this.opt = opt;
+    if (!this.opt.element) {
+      this.log('No wrapping element specified.' +
+        ' Please specify options.element parameter');
+      this.opt.noMatch(sv);
+      return;
+    }
     let index = 0,
       totalMarks = 0,
       totalMatches = 0;
@@ -1376,6 +1394,12 @@ class Mark {
   }
   markRanges(rawRanges, opt) {
     this.opt = opt;
+    if (!this.opt.element) {
+      this.log('No wrapping element specified.' +
+        ' Please specify options.element parameter');
+      this.opt.noMatch(rawRanges);
+      return;
+    }
     let totalMarks = 0,
       ranges = this.checkRanges(rawRanges);
     if (ranges && ranges.length) {
@@ -1399,8 +1423,7 @@ class Mark {
   }
   unmark(opt) {
     this.opt = opt;
-    let sel = this.opt.element ? this.opt.element : '*';
-    sel += '[data-markjs]';
+    let sel = '[data-markjs]';
     if (this.opt.className) {
       sel += `.${this.opt.className}`;
     }
