@@ -603,7 +603,8 @@ class Mark {
         node: node
       });
     }, node => {
-      if (this.matchesExclude(node.parentNode)) {
+      // Only scan text runs (other text nodes are not visible)
+      if (!['w:t', 'm:t'].includes(node.parentNode.tagName)) {
         return NodeFilter.FILTER_REJECT;
       } else {
         return NodeFilter.FILTER_ACCEPT;
@@ -633,7 +634,7 @@ class Mark {
    * @access protected
    */
   matchesExclude(el) {
-    return DOMIterator.matches(el, this.opt.exclude.concat([
+    return DOMIterator.isNotTextRun(el, this.opt.exclude.concat([
       // ignores the elements itself, not their childrens (selector *)
       'script', 'style', 'title', 'head', 'html'
     ]));
@@ -1935,7 +1936,7 @@ class Mark {
     this.iterator.forEachNode(NodeFilter.SHOW_ELEMENT, node => {
       this.unwrapMatches(node);
     }, node => {
-      const matchesSel = DOMIterator.matches(node, sel),
+      const matchesSel = DOMIterator.isNotTextRun(node, sel),
         matchesExclude = this.matchesExclude(node);
       if (!matchesSel || matchesExclude) {
         return NodeFilter.FILTER_REJECT;

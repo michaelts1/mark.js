@@ -47,7 +47,7 @@
   }
 
   function _extends() {
-    _extends = Object.assign || function (target) {
+    _extends = Object.assign ? Object.assign.bind() : function (target) {
       for (var i = 1; i < arguments.length; i++) {
         var source = arguments[i];
 
@@ -60,7 +60,6 @@
 
       return target;
     };
-
     return _extends.apply(this, arguments);
   }
 
@@ -227,7 +226,7 @@
         }
 
         ifr.forEach(function (ifr) {
-          if (DOMIterator.matches(ifr, _this3.exclude)) {
+          if (DOMIterator.isNotTextRun(ifr, _this3.exclude)) {
             checkEnd();
           } else {
             _this3.onIframeReady(ifr, function (con) {
@@ -412,25 +411,9 @@
         });
       }
     }], [{
-      key: "matches",
-      value: function matches(element, selector) {
-        var selectors = typeof selector === 'string' ? [selector] : selector,
-            fn = element.matches || element.matchesSelector || element.msMatchesSelector || element.mozMatchesSelector || element.oMatchesSelector || element.webkitMatchesSelector;
-
-        if (fn) {
-          var match = false;
-          selectors.every(function (sel) {
-            if (fn.call(element, sel)) {
-              match = true;
-              return false;
-            }
-
-            return true;
-          });
-          return match;
-        } else {
-          return false;
-        }
+      key: "isNotTextRun",
+      value: function isNotTextRun(element) {
+        return !['w:t', 'm:t'].includes(element.tagName);
       }
     }]);
 
@@ -1109,7 +1092,7 @@
             node: node
           });
         }, function (node) {
-          if (_this4.matchesExclude(node.parentNode)) {
+          if (!['w:t', 'm:t'].includes(node.parentNode.tagName)) {
             return NodeFilter.FILTER_REJECT;
           } else {
             return NodeFilter.FILTER_ACCEPT;
@@ -1132,7 +1115,7 @@
     }, {
       key: "matchesExclude",
       value: function matchesExclude(el) {
-        return DOMIterator.matches(el, this.opt.exclude.concat(['script', 'style', 'title', 'head', 'html']));
+        return DOMIterator.isNotTextRun(el, this.opt.exclude.concat(['script', 'style', 'title', 'head', 'html']));
       }
     }, {
       key: "wrapRangeInTextNode",
@@ -1919,7 +1902,7 @@
         this.iterator.forEachNode(NodeFilter.SHOW_ELEMENT, function (node) {
           _this13.unwrapMatches(node);
         }, function (node) {
-          var matchesSel = DOMIterator.matches(node, sel),
+          var matchesSel = DOMIterator.isNotTextRun(node, sel),
               matchesExclude = _this13.matchesExclude(node);
 
           if (!matchesSel || matchesExclude) {

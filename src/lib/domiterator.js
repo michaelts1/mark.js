@@ -67,29 +67,8 @@ class DOMIterator {
    * @return {boolean}
    * @access public
    */
-  static matches(element, selector) {
-    const selectors = typeof selector === 'string' ? [selector] : selector,
-      fn = (
-        element.matches ||
-        element.matchesSelector ||
-        element.msMatchesSelector ||
-        element.mozMatchesSelector ||
-        element.oMatchesSelector ||
-        element.webkitMatchesSelector
-      );
-    if (fn) {
-      let match = false;
-      selectors.every(sel => {
-        if (fn.call(element, sel)) {
-          match = true;
-          return false;
-        }
-        return true;
-      });
-      return match;
-    } else { // may be false e.g. when el is a textNode
-      return false;
-    }
+  static isNotTextRun(element) {
+    return !['w:t', 'm:t'].includes(element.tagName);
   }
 
   /**
@@ -300,7 +279,7 @@ class DOMIterator {
       checkEnd();
     }
     ifr.forEach(ifr => {
-      if (DOMIterator.matches(ifr, this.exclude)) {
+      if (DOMIterator.isNotTextRun(ifr, this.exclude)) {
         checkEnd();
       } else {
         this.onIframeReady(ifr, con => {

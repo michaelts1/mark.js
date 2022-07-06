@@ -12,29 +12,8 @@ class DOMIterator {
     this.exclude = exclude;
     this.iframesTimeout = iframesTimeout;
   }
-  static matches(element, selector) {
-    const selectors = typeof selector === 'string' ? [selector] : selector,
-      fn = (
-        element.matches ||
-        element.matchesSelector ||
-        element.msMatchesSelector ||
-        element.mozMatchesSelector ||
-        element.oMatchesSelector ||
-        element.webkitMatchesSelector
-      );
-    if (fn) {
-      let match = false;
-      selectors.every(sel => {
-        if (fn.call(element, sel)) {
-          match = true;
-          return false;
-        }
-        return true;
-      });
-      return match;
-    } else {
-      return false;
-    }
+  static isNotTextRun(element) {
+    return !['w:t', 'm:t'].includes(element.tagName);
   }
   getContexts() {
     let ctx,
@@ -148,7 +127,7 @@ class DOMIterator {
       checkEnd();
     }
     ifr.forEach(ifr => {
-      if (DOMIterator.matches(ifr, this.exclude)) {
+      if (DOMIterator.isNotTextRun(ifr, this.exclude)) {
         checkEnd();
       } else {
         this.onIframeReady(ifr, con => {
@@ -808,7 +787,7 @@ class Mark {
         node: node
       });
     }, node => {
-      if (this.matchesExclude(node.parentNode)) {
+      if (!['w:t', 'm:t'].includes(node.parentNode.tagName)) {
         return NodeFilter.FILTER_REJECT;
       } else {
         return NodeFilter.FILTER_ACCEPT;
@@ -827,7 +806,7 @@ class Mark {
     });
   }
   matchesExclude(el) {
-    return DOMIterator.matches(el, this.opt.exclude.concat([
+    return DOMIterator.isNotTextRun(el, this.opt.exclude.concat([
       'script', 'style', 'title', 'head', 'html'
     ]));
   }
@@ -1429,7 +1408,7 @@ class Mark {
     this.iterator.forEachNode(NodeFilter.SHOW_ELEMENT, node => {
       this.unwrapMatches(node);
     }, node => {
-      const matchesSel = DOMIterator.matches(node, sel),
+      const matchesSel = DOMIterator.isNotTextRun(node, sel),
         matchesExclude = this.matchesExclude(node);
       if (!matchesSel || matchesExclude) {
         return NodeFilter.FILTER_REJECT;
