@@ -1,6 +1,6 @@
 /*!***************************************************
 * mark.js v10.0.0
-* https://github.com/michaelts1/mark.js/tree/master
+* https://github.com/michaelts1/mark.js/tree/ooxml
 * Copyright (c) 2014–2022, Julian Kühnel
 * Released under the MIT license https://git.io/vwTVl
 *****************************************************/
@@ -20,29 +20,8 @@
       this.exclude = exclude;
       this.iframesTimeout = iframesTimeout;
     }
-    static matches(element, selector) {
-      const selectors = typeof selector === 'string' ? [selector] : selector,
-        fn = (
-          element.matches ||
-          element.matchesSelector ||
-          element.msMatchesSelector ||
-          element.mozMatchesSelector ||
-          element.oMatchesSelector ||
-          element.webkitMatchesSelector
-        );
-      if (fn) {
-        let match = false;
-        selectors.every(sel => {
-          if (fn.call(element, sel)) {
-            match = true;
-            return false;
-          }
-          return true;
-        });
-        return match;
-      } else {
-        return false;
-      }
+    static isNotTextRun(element) {
+      return !['w:t', 'm:t'].includes(element.tagName);
     }
     getContexts() {
       let ctx,
@@ -156,7 +135,7 @@
         checkEnd();
       }
       ifr.forEach(ifr => {
-        if (DOMIterator.matches(ifr, this.exclude)) {
+        if (DOMIterator.isNotTextRun(ifr)) {
           checkEnd();
         } else {
           this.onIframeReady(ifr, con => {
@@ -835,9 +814,7 @@
       });
     }
     matchesExclude(el) {
-      return DOMIterator.matches(el, this.opt.exclude.concat([
-        'script', 'style', 'title', 'head', 'html'
-      ]));
+      return DOMIterator.isNotTextRun(el);
     }
     wrapRangeInTextNode(node, start, end) {
       const startNode = node.splitText(start),
@@ -1437,7 +1414,7 @@
       this.iterator.forEachNode(NodeFilter.SHOW_ELEMENT, node => {
         this.unwrapMatches(node);
       }, node => {
-        const matchesSel = DOMIterator.matches(node, sel),
+        const matchesSel = DOMIterator.isNotTextRun(node),
           matchesExclude = this.matchesExclude(node);
         if (!matchesSel || matchesExclude) {
           return NodeFilter.FILTER_REJECT;

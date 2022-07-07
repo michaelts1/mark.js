@@ -633,10 +633,7 @@ class Mark {
    * @access protected
    */
   matchesExclude(el) {
-    return DOMIterator.matches(el, this.opt.exclude.concat([
-      // ignores the elements itself, not their childrens (selector *)
-      'script', 'style', 'title', 'head', 'html'
-    ]));
+    return DOMIterator.isNotTextRun(el);
   }
 
   /**
@@ -1935,7 +1932,7 @@ class Mark {
     this.iterator.forEachNode(NodeFilter.SHOW_ELEMENT, node => {
       this.unwrapMatches(node);
     }, node => {
-      const matchesSel = DOMIterator.matches(node, sel),
+      const matchesSel = DOMIterator.isNotTextRun(node),
         matchesExclude = this.matchesExclude(node);
       if (!matchesSel || matchesExclude) {
         return NodeFilter.FILTER_REJECT;
