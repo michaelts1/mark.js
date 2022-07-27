@@ -8,11 +8,6 @@
  * Created by Michael Tsaban 2022, MIT licensed.
  */
 
-type accuracy = "partially" | "complementary" | "exactly"
-type MarkAccuracy = accuracy | {
-	value: accuracy
-	limiters?: string[]
-}
 type markTerm = string | string[]
 type markRegExpTerm = RegExp
 type markRangesTerm = Array<{
@@ -20,14 +15,14 @@ type markRangesTerm = Array<{
 	length: number
 }>
 
-export class Mark {
+export default class Mark {
 	constructor(context: Element | Element[] | string | NodeList)
 
 	/**
 	 * Highlight custom search terms.
 	 * @param term The term to be marked. Can also be an array with multiple terms.
-	 * Note that terms will be escaped. If you need to mark unescaped terms (e.g. containing a pattern),
-	 * have a look at the `markRegExp()`
+	 * Note that terms will be escaped. If you need to mark unescaped terms
+	 * (e.g. containing a pattern), have a look at the `markRegExp()`
 	 * @param options Optional options
 	 * @returns Itself
 	 */
@@ -87,8 +82,19 @@ declare namespace Mark {
 
 	interface MarkOptionsGeneric extends Options {
 		each?: (element: Element, matchInfo: MatchInfo) => void
-		filter?: (textNode: Text, matchedText: string, totalMarks: number, filterInfo: FilterInfo) => boolean
+		filter?: (
+				textNode: Text,
+				matchedText: string,
+				totalMarks: number,
+				filterInfo: FilterInfo
+			) => boolean
 		noMatch?: (term: markTerm | markRegExpTerm) => void
+	}
+
+	type accuracy = 'partially' | 'complementary' | 'exactly'
+	type MarkAccuracy = accuracy | {
+		value: accuracy
+		limiters?: string[]
 	}
 
 	interface MarkOptions extends MarkOptionsGeneric {
@@ -100,7 +106,7 @@ declare namespace Mark {
 		caseSensitive?: boolean
 		ignoreJoiners?: boolean
 		ignorePunctuation?: string[]
-		wildcards?: "disabled" | "enabled" | "withSpaces"
+		wildcards?: 'disabled' | 'enabled' | 'withSpaces'
 	}
 
 	interface MarkRegExpOptions extends MarkOptionsGeneric {
