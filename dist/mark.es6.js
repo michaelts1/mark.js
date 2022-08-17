@@ -1175,7 +1175,7 @@ class Mark {
         node = info.node;
         while (
           (match = regex.exec(node.textContent.normalize())) !== null &&
-          match[matchIdx] !== ''
+          match[index] !== ''
         ) {
           filterInfo.match = match;
           filterInfo.offset = info.start;
@@ -1237,7 +1237,7 @@ class Mark {
     let match, matchStart, eMatchStart, count = 0;
     this.getTextNodesAcrossElements(dict => {
       while (
-        (match = regex.exec(dict.value)) !== null &&
+        (match = regex.exec(dict.value.normalize())) !== null &&
         (regex.hasIndices || match[0] !== '')
       ) {
         filterInfo.match = match;
@@ -1275,7 +1275,7 @@ class Mark {
     this.getTextNodesAcrossElements(dict => {
       while (
         (match = regex.exec(dict.value.normalize())) !== null &&
-        match[matchIdx] !== ''
+        match[index] !== ''
       ) {
         filterInfo.match = match;
         matchStart = true;
