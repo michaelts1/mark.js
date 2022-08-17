@@ -1604,7 +1604,7 @@
             info = dict.nodes[k];
             node = info.node;
 
-            while ((match = regex.exec(node.textContent)) !== null && match[index] !== '') {
+            while ((match = regex.exec(node.textContent.normalize())) !== null && match[matchIdx] !== '') {
               filterInfo.match = match;
               filterInfo.offset = info.start;
 
@@ -1732,7 +1732,7 @@
             matchStart,
             count = 0;
         this.getTextNodesAcrossElements(function (dict) {
-          while ((match = regex.exec(dict.value.normalize())) !== null && match[index] !== '') {
+          while ((match = regex.exec(dict.value.normalize())) !== null && match[matchIdx] !== '') {
             filterInfo.match = match;
             matchStart = true;
             var start = match.index;
