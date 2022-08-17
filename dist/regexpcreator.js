@@ -1,6 +1,6 @@
 /*!***************************************************
 * mark.js v10.0.0
-* https://markjs.io/
+* https://github.com/michaelts1/mark.js/tree/master
 * Copyright (c) 2014–2022, Julian Kühnel
 * Released under the MIT license https://git.io/vwTVl
 *****************************************************/
@@ -30,11 +30,14 @@
   function _createClass(Constructor, protoProps, staticProps) {
     if (protoProps) _defineProperties(Constructor.prototype, protoProps);
     if (staticProps) _defineProperties(Constructor, staticProps);
+    Object.defineProperty(Constructor, "prototype", {
+      writable: false
+    });
     return Constructor;
   }
 
   function _extends() {
-    _extends = Object.assign || function (target) {
+    _extends = Object.assign ? Object.assign.bind() : function (target) {
       for (var i = 1; i < arguments.length; i++) {
         var source = arguments[i];
 
@@ -47,7 +50,6 @@
 
       return target;
     };
-
     return _extends.apply(this, arguments);
   }
 

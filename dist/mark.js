@@ -14,17 +14,11 @@
   function _typeof(obj) {
     "@babel/helpers - typeof";
 
-    if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") {
-      _typeof = function (obj) {
-        return typeof obj;
-      };
-    } else {
-      _typeof = function (obj) {
-        return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
-      };
-    }
-
-    return _typeof(obj);
+    return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) {
+      return typeof obj;
+    } : function (obj) {
+      return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
+    }, _typeof(obj);
   }
 
   function _classCallCheck(instance, Constructor) {
@@ -46,11 +40,14 @@
   function _createClass(Constructor, protoProps, staticProps) {
     if (protoProps) _defineProperties(Constructor.prototype, protoProps);
     if (staticProps) _defineProperties(Constructor, staticProps);
+    Object.defineProperty(Constructor, "prototype", {
+      writable: false
+    });
     return Constructor;
   }
 
   function _extends() {
-    _extends = Object.assign || function (target) {
+    _extends = Object.assign ? Object.assign.bind() : function (target) {
       for (var i = 1; i < arguments.length; i++) {
         var source = arguments[i];
 
@@ -63,7 +60,6 @@
 
       return target;
     };
-
     return _extends.apply(this, arguments);
   }
 
@@ -1555,7 +1551,7 @@
             node = nd.node;
             filterInfo.offset = nd.start;
 
-            while ((match = regex.exec(node.textContent)) !== null && (regex.hasIndices || match[0] !== '')) {
+            while ((match = regex.exec(node.textContent.normalize())) !== null && (regex.hasIndices || match[0] !== '')) {
               filterInfo.match = match;
               matchStart = eMatchStart = true;
               node = _this5[fn](node, match, params, function (group, node, groupIndex) {
@@ -1736,7 +1732,7 @@
             matchStart,
             count = 0;
         this.getTextNodesAcrossElements(function (dict) {
-          while ((match = regex.exec(dict.value)) !== null && match[index] !== '') {
+          while ((match = regex.exec(dict.value.normalize())) !== null && match[index] !== '') {
             filterInfo.match = match;
             matchStart = true;
             var start = match.index;
