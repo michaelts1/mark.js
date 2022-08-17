@@ -8,30 +8,25 @@
  * Created by Michael Tsaban 2022, MIT licensed.
  */
 
-type accuracy = "partially" | "complementary" | "exactly"
-type MarkAccuracy = accuracy | {
-	value: accuracy
-	limiters?: string[]
-}
-type markTerm = string | string[]
-type markRegExpTerm = RegExp
-type markRangesTerm = Array<{
+type MarkTerm = string | string[]
+type MarkRegExpTerm = RegExp
+type MarkRangesTerm = Array<{
 	start: number
 	length: number
 }>
 
-export class Mark {
+export default class Mark {
 	constructor(context: Element | Element[] | string | NodeList)
 
 	/**
 	 * Highlight custom search terms.
 	 * @param term The term to be marked. Can also be an array with multiple terms.
-	 * Note that terms will be escaped. If you need to mark unescaped terms (e.g. containing a pattern),
-	 * have a look at the `markRegExp()`
+	 * Note that terms will be escaped. If you need to mark unescaped terms
+	 * (e.g. containing a pattern), have a look at the `markRegExp()`
 	 * @param options Optional options
 	 * @returns Itself
 	 */
-	mark(term: markTerm, options?: Mark.MarkOptions): this
+	mark(term: MarkTerm, options?: Mark.MarkOptions): this
 
 	/**
 	 * Highlight custom regular expressions.
@@ -39,7 +34,7 @@ export class Mark {
 	 * @param options Optional options
 	 * @returns Itself
 	 */
-	markRegExp(term: markRegExpTerm, options?: Mark.MarkRegExpOptions): this
+	markRegExp(term: MarkRegExpTerm, options?: Mark.MarkRegExpOptions): this
 
 	/**
 	 * A method to mark ranges with a start position and length. They will be applied
@@ -49,7 +44,7 @@ export class Mark {
 	 * @param options Optional options
 	 * @returns Itself
 	 */
-	markRanges(ranges: markRangesTerm, options?: Mark.MarkOptionsGeneric): this
+	markRanges(ranges: MarkRangesTerm, options?: Mark.MarkOptionsGeneric): this
 
 	/**
 	 * A method to remove highlights created by mark.js.
@@ -87,8 +82,19 @@ declare namespace Mark {
 
 	interface MarkOptionsGeneric extends Options {
 		each?: (element: Element, matchInfo: MatchInfo) => void
-		filter?: (textNode: Text, matchedText: string, totalMarks: number, filterInfo: FilterInfo) => boolean
-		noMatch?: (term: markTerm | markRegExpTerm) => void
+		filter?: (
+				textNode: Text,
+				matchedText: string,
+				totalMarks: number,
+				filterInfo: FilterInfo
+			) => boolean
+		noMatch?: (term: MarkTerm | MarkRegExpTerm) => void
+	}
+
+	type Accuracy = 'partially' | 'complementary' | 'exactly'
+	type MarkAccuracy = Accuracy | {
+		value: Accuracy
+		limiters?: string[]
 	}
 
 	interface MarkOptions extends MarkOptionsGeneric {
@@ -100,7 +106,7 @@ declare namespace Mark {
 		caseSensitive?: boolean
 		ignoreJoiners?: boolean
 		ignorePunctuation?: string[]
-		wildcards?: "disabled" | "enabled" | "withSpaces"
+		wildcards?: 'disabled' | 'enabled' | 'withSpaces'
 	}
 
 	interface MarkRegExpOptions extends MarkOptionsGeneric {
